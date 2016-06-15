@@ -5,7 +5,7 @@ cd dysto
 sudo python3 setup.py develop
 ```
 
-Pour executer le code d'exemple:
+Pour executer le code d'exemple, il faut ajouter le corpus donné par la prof (`estrep-694882.parsed_bonsai3_2_malt.conll`) dans le dossier `data`:
 ```bash
 bash example_usage.bash
 ```
