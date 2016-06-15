@@ -1,0 +1,111 @@
+import os
+import time
+from argparse import ArgumentParser, FileType
+from itertools import combinations
+from dysto import *
+
+parser = ArgumentParser(description="Generate distributional thesauri")
+parser.add_argument('corpus', type=FileType('r'),
+                    help="Corpus in conll format")
+
+parser.add_argument('-W', '--stopwords', type=FileType('r'),
+                    help="File containing a list of stopwords")
+parser.add_argument('-t', '--tags', type=str, required=True,
+                    help="Comma separated list of tags along with the number of " \
+                    "lemma that will be used in each thesaurus (one per tag). " \
+                    "Ex: dysto -t \"V:500,NC:2000,A:1000\" [...]")
+parser.add_argument('-c', '--context-occurence', type=int, default=5,
+                    help="Only consider contexts that occured at least n times. Default: 5")
+
+size_limit = parser.add_mutually_exclusive_group()
+size_limit.add_argument('-v', '--vocab-limit', type=int, default=None,
+                        help="Cut the corpus when limit vocabulary size is reached")
+size_limit.add_argument('-T', '--token-limit', type=int, default=None,
+                        help="Cut the corpus when limit number of tokens is reached")
+
+context_type = parser.add_mutually_exclusive_group()
+context_type.add_argument('-b', '--bag-of-words', action='store_true', default=True,
+                          help="Use bag of words context type")
+context_type.add_argument('-p', '--positional', action='store_true', default=False,
+                          help="Use positional context type")
+
+parser.add_argument('-s', '--span', type=int, default=3,
+                    help="Size of the span for bag of words contexts.")
+
+parser.add_argument('-o', '--outdir', default='./dysto_output',
+                    help="Output directory. Default: ./dysto_output")
+parser.add_argument('-S', '--similarity', type=str, default='cosine',
+                    choices=['cosine'],
+                    help="Similarity scoring method. Default: cosine")
+
+
+args = parser.parse_args()
+
+# Compute Arguments
+#
+stopwords = []
+if args.stopwords:
+    stopwords = read_stopwords(args.stopwords)
+
+tags = {t: int(n) for t, n in [p.split(':') for p in args.tags.strip().split(',')]}
+
+# Prepare Output Directory
+#
+outdir = os.path.abspath(args.outdir)
+if not os.path.isdir(outdir):
+    os.mkdir(outdir)
+
+session_dir = os.path.join(outdir, time.strftime("%Y%m%d-%H%M%S"))
+os.mkdir(session_dir)
+
+
+# Generate Thesauri
+#
+corpus = Corpus.from_stream(args.corpus)
+
+if args.token_limit:
+    corpus = corpus.limit_tokens(args.token_limit)
+
+if stopwords:
+    corpus = corpus.sanitize(stopwords)
+
+if args.vocab_limit:
+    corpus = corpus.limit_vocabulary(args.vocab_limit)
+
+if args.bag_of_words:
+    contexts = corpus.bag_of_words_contexts(span=args.span)
+else:
+    sys.stderr.write('Only support bag of words contexts')
+    exit(1)
+
+thesauri = contexts.context_vectors(tags, context_min=args.context_occurence) \
+                   .distributional_thesauri(sim=args.similarity)
+
+for tag, thesaurus in thesauri.items():
+    filename = os.path.join(session_dir, "thesaurus_%s" % tag)
+    thesaurus.dump(open(filename, 'w'))
+
+
+exit(0)
+
+#corpus.bag_of_words_contexts(span=args.span) \
+      #.select_tags(tags) \
+      #.context_vectors(lemma_nb=100, context_min=5) \
+      #.distributional_thesaurus(sim=args.similarity) \
+      #.dump(sys.stdout)
+
+
+
+#vocab = {}
+
+#corpus = read_conll(args.corpus)
+#corpus = sanitize_corpus(corpus, stopwords)
+#corpus = compute_vocabulary(corpus, vocab, vocab_limit=1000) #args.vocab_limit)
+#contexts = bag_of_words_contexts(corpus, span=2)
+#contexts = filter_by_tag(contexts, ['V'])
+#vectors = compute_context_vectors(contexts, lemma_nb=100, context_min=5)
+#similarity = cosine_similarity(vectors)
+#dump_thesaurus(sys.stdout, similarity)
+
+
+# vim: set filetype=python:
