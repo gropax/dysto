@@ -1,6 +1,7 @@
 *.swp
 data/estrep-694882.parsed_bonsai3_2_malt.conll
 output/
+dysto_output/
 log/
 doc/
 

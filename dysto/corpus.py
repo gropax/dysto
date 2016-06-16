@@ -31,5 +31,9 @@ class Corpus(object):
         gen = bag_of_words_contexts(self, span)
         return Contexts(gen)
 
+    def positional_contexts(self, span=2):
+        gen = positional_contexts(self, span)
+        return Contexts(gen)
+
     def vocabulary(self):
         return self._vocabulary

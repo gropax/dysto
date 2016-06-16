@@ -68,6 +68,21 @@ def bag_of_words_contexts(corpus, span=4):
         for context in sentence_bag_of_words_contexts(sent, span):
             yield context
 
+def sentence_positional_contexts(sent, span=4):
+    triples = []
+    for i in range(0, len(sent)):
+        w = sent[i]
+        before = [(sent[x], x-i) for x in range(max(0,i-span),i)]
+        after = [(sent[x], x-i) for x in range(i+1,min(i+span+1,len(sent)))]
+        contexts = before + after
+        triples += [(w, n) for n in contexts]
+    return triples
+
+def positional_contexts(corpus, span=4):
+    for sent in corpus:
+        for context in sentence_positional_contexts(sent, span):
+            yield context
+
 def filter_by_tag(contexts, allowed):
     for c in contexts:
         if c[0][1] in allowed:
