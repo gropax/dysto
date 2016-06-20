@@ -118,9 +118,9 @@ else:
     sys.stderr.write('Only support bag of words contexts')
     exit(1)
 
-vectors = contexts.context_vectors(tags, context_min=args.context_occurence)
+vectors = contexts.context_vectors(tags, context_min=args.context_occurence, logger=logger)
 
-thesauri = vectors.distributional_thesauri(sim=args.similarity)
+thesauri = vectors.distributional_thesauri(sim=args.similarity, logger=logger)
 
 for tag, thesaurus in thesauri.items():
     filename = os.path.join(session_dir, "thesaurus_%s" % tag)

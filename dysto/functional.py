@@ -1,3 +1,4 @@
+import time
 from collections import defaultdict
 
 
@@ -111,7 +112,7 @@ def filter_by_tag(contexts, allowed):
 
 
 
-def compute_context_vectors(contexts, tags={}, context_min=1):
+def compute_context_vectors(contexts, tags={}, context_min=1, logger=None):
     """Compute vector representation for lemmas from the given list of contexts.
     Only return vectors for the `lemma_nb` most frequent lemmas if given, and only
     consider contexts which have been observed at least `context_min` times
@@ -122,10 +123,20 @@ def compute_context_vectors(contexts, tags={}, context_min=1):
     freq = defaultdict(lambda: defaultdict(int))
     keep_tags = tags.keys()
 
+    start = time.clock()
+
     for (w, t), c in contexts:
         if t in keep_tags:
             vectors[t][w][c] += 1
             freq[t][w] += 1
+
+    end = time.clock()
+
+    if logger:
+        logger.log("\tElapsed time : %0.3f s" % (end - start))
+        logger.log("Computing vectors...")
+
+    start = time.clock()
 
     out = {}
     for t, n in tags.items():
@@ -137,15 +148,16 @@ def compute_context_vectors(contexts, tags={}, context_min=1):
         tag_vectors = defaultdict(dict)
         for w, cx in vectors[t].items():
             if w in lemmas:
-                #v = {}
-                #for c, f in cx.items():
-                    #if f >= context_min:
-                        #v[c] = f
                 v = {c: f for c, f in cx.items() if f >= context_min}
                 if v:
                     tag_vectors[w] = v
 
         out[t] = tag_vectors
+
+    end = time.clock()
+
+    if logger:
+        logger.log("\tElapsed time : %0.3f s" % (end - start))
 
     return out
 
