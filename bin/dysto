@@ -46,15 +46,6 @@ parser.add_argument('-V', '--verbose', action='store_true', default=False,
 
 
 args = parser.parse_args()
-print(args)
-
-# Compute Arguments
-#
-stopwords = []
-if args.stopwords:
-    stopwords = read_stopwords(args.stopwords)
-
-tags = {t: int(n) for t, n in [p.split(':') for p in args.tags.strip().split(',')]}
 
 # Prepare Output Directory
 #
@@ -62,16 +53,49 @@ outdir = os.path.abspath(args.outdir)
 if not os.path.isdir(outdir):
     os.mkdir(outdir)
 
+
+# Prepare Session Directory
+#
 session_dir = os.path.join(outdir, time.strftime("%Y%m%d-%H%M%S"))
 os.mkdir(session_dir)
 
 
-# Generate Thesauri
+# Setup Logging
 #
+log_file = open(os.path.join(session_dir, 'log'), 'w')
+
+streams = [log_file]
+if args.verbose:
+    streams.append(sys.stdout)
+
+logger = Logger(streams)
+
+logger.log("Session directory :  %s" % session_dir)
+logger.log("Using corpus :  %s" % args.corpus.name)
+
+
 corpus = Corpus.from_stream(args.corpus)
 
+
+# Compute Arguments
+#
+stopwords = []
+if args.stopwords:
+    logger.log("Using stopwords in :  %s" % args.stopwords.name)
+    stopwords = read_stopwords(args.stopwords)
+
+tags = {t: int(n) for t, n in [p.split(':') for p in args.tags.strip().split(',')]}
+
+logger.log("Building thesauri for tags :")
+for i in tags.items():
+    logger.log("\t%s :  %i most frequent" % i)
+
+
+# Generate Thesauri
+#
+
 if args.token_limit:
-    corpus = corpus.limit_tokens(args.token_limit, verbose=args.verbose)
+    corpus = corpus.limit_tokens(args.token_limit, logger=logger)
 
 if stopwords:
     corpus = corpus.sanitize(stopwords)
