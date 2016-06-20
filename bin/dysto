@@ -70,10 +70,17 @@ if args.verbose:
 
 logger = Logger(streams)
 
+
+# Setup Backup Files
+#
+context_backup = open(os.path.join(session_dir, 'contexts'), 'w')
+#vectors_backup = open(os.path.join(session_dir, 'vectors'), 'w')
+
+
 logger.log("Session directory :  %s" % session_dir)
+
+
 logger.log("Using corpus :  %s" % args.corpus.name)
-
-
 corpus = Corpus.from_stream(args.corpus)
 
 
@@ -104,15 +111,16 @@ if args.vocab_limit:
     corpus = corpus.limit_vocabulary(args.vocab_limit)
 
 if args.bag_of_words:
-    contexts = corpus.bag_of_words_contexts(span=args.span)
+    contexts = corpus.bag_of_words_contexts(span=args.span, backup=context_backup)
 elif args.positional:
-    contexts = corpus.positional_contexts(span=args.span)
+    contexts = corpus.positional_contexts(span=args.span, backup=context_backup)
 else:
     sys.stderr.write('Only support bag of words contexts')
     exit(1)
 
-thesauri = contexts.context_vectors(tags, context_min=args.context_occurence) \
-                   .distributional_thesauri(sim=args.similarity)
+vectors = contexts.context_vectors(tags, context_min=args.context_occurence)
+
+thesauri = vectors.distributional_thesauri(sim=args.similarity)
 
 for tag, thesaurus in thesauri.items():
     filename = os.path.join(session_dir, "thesaurus_%s" % tag)

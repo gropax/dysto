@@ -31,3 +31,14 @@ class Vectors(object):
     def scalar_product(self, w1, w2):
         v1, v2 = self.vectors[w1], self.vectors[w2]
         return sum(v1[k] * v2[k] for k in v1 if k in v2)
+
+    def dump(self, stream):
+        for w, v in self.vectors.items():
+            #vstr = ""
+            #for (w2, t), s in v.items():
+            print(w)
+            print(list(v.items())[0])
+            a = [x for w, s in v.items() for x in ["_".join(w), s]]
+            print(a)
+            s = w + "\t" + "\t".join([x for y in v.items() for x in y])
+            stream.write(s)

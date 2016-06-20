@@ -81,6 +81,9 @@ def sentence_bag_of_words_contexts(sent, span=4):
 def bag_of_words_contexts(corpus, span=4):
     for sent in corpus:
         for context in sentence_bag_of_words_contexts(sent, span):
+            if backup:
+                backup.write(dump_bag_of_words_context(context))
+
             yield context
 
 def sentence_positional_contexts(sent, span=4):
@@ -93,9 +96,12 @@ def sentence_positional_contexts(sent, span=4):
         triples += [(w, n) for n in contexts]
     return triples
 
-def positional_contexts(corpus, span=4):
+def positional_contexts(corpus, span=4, backup=None):
     for sent in corpus:
         for context in sentence_positional_contexts(sent, span):
+            if backup:
+                backup.write(dump_positional_context(context))
+
             yield context
 
 def filter_by_tag(contexts, allowed):
@@ -142,6 +148,15 @@ def compute_context_vectors(contexts, tags={}, context_min=1):
         out[t] = tag_vectors
 
     return out
+
+
+def dump_bag_of_words_context(context):
+    (w1, t1), (w2, t2) = context
+    return "\t".join([w1, t1, w2, t2]) + "\n"
+
+def dump_positional_context(context):
+    (w1, t1), ((w2, t2), p) = context
+    return "\t".join([w1, t1, w2, t2, str(p)]) + "\n"
 
 #def cosine_similarity(vectors):
     #simil = {}

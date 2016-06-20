@@ -27,12 +27,12 @@ class Corpus(object):
         gen = compute_vocabulary(self._generator, vocab, vocab_limit=limit)
         return Corpus(gen, vocab=vocab)
 
-    def bag_of_words_contexts(self, span=2):
-        gen = bag_of_words_contexts(self, span)
+    def bag_of_words_contexts(self, span=2, backup=None):
+        gen = bag_of_words_contexts(self, span, backup=backup)
         return Contexts(gen)
 
-    def positional_contexts(self, span=2):
-        gen = positional_contexts(self, span)
+    def positional_contexts(self, span=2, backup=None):
+        gen = positional_contexts(self, span, backup=backup)
         return Contexts(gen)
 
     def vocabulary(self):
