@@ -11,5 +11,6 @@ dysto data/estrep-694882.parsed_bonsai3_2_malt.conll \
       --context-occurence 5 \
       --similarity cosine \
       --outdir output \
+      --verbose
 
 cat ./output/$(ls output | tail -n 1)/thesaurus_V | head -n 20

@@ -18,8 +18,8 @@ class Corpus(object):
         gen = sanitize_corpus(self._generator, words, tags)
         return Corpus(gen)
 
-    def limit_tokens(self, limit):
-        gen = limit_tokens(self._generator, limit=limit)
+    def limit_tokens(self, limit, verbose=False):
+        gen = limit_tokens(self._generator, limit=limit, verbose=verbose)
         return Corpus(gen)
 
     def limit_vocabulary(self, limit):

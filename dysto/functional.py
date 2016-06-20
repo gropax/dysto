@@ -27,12 +27,22 @@ def sanitize_corpus(corpus, words=[], tags=[]):
     for s in corpus:
         yield sanitize_sentence(s, words, tags)
 
-def limit_tokens(corpus, limit):
+def limit_tokens(corpus, limit, verbose=False):
     """Reduce the size of the corpus under a given number tokens."""
+    if verbose:
+        psize = int(limit / 20)
+        ptot = psize
+
     n = 0
     for s in corpus:
         for w, t in s:
             n += 1
+
+        if verbose and n > ptot:
+            ptot += psize
+            p = 5 * (ptot / psize - 1)
+            print("Read Corpus:  %i %%" % p)
+
         if n > limit:
             break
         else:

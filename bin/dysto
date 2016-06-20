@@ -33,15 +33,20 @@ context_type.add_argument('-d', '--dependence', action='store_true', default=Fal
 
 parser.add_argument('-s', '--span', type=int, default=3,
                     help="Size of the span for bag of words contexts.")
+#parser.add_argument('-r', '--relations', type=FileType('r'),
+                    #help="File containing syntactic relations to use in contexts")
 
 parser.add_argument('-o', '--outdir', default='./dysto_output',
                     help="Output directory. Default: ./dysto_output")
 parser.add_argument('-S', '--similarity', type=str, default='cosine',
                     choices=['cosine'],
                     help="Similarity scoring method. Default: cosine")
+parser.add_argument('-V', '--verbose', action='store_true', default=False,
+                    help="Print information about current process")
 
 
 args = parser.parse_args()
+print(args)
 
 # Compute Arguments
 #
@@ -66,7 +71,7 @@ os.mkdir(session_dir)
 corpus = Corpus.from_stream(args.corpus)
 
 if args.token_limit:
-    corpus = corpus.limit_tokens(args.token_limit)
+    corpus = corpus.limit_tokens(args.token_limit, verbose=args.verbose)
 
 if stopwords:
     corpus = corpus.sanitize(stopwords)
@@ -91,25 +96,5 @@ for tag, thesaurus in thesauri.items():
 
 
 exit(0)
-
-#corpus.bag_of_words_contexts(span=args.span) \
-      #.select_tags(tags) \
-      #.context_vectors(lemma_nb=100, context_min=5) \
-      #.distributional_thesaurus(sim=args.similarity) \
-      #.dump(sys.stdout)
-
-
-
-#vocab = {}
-
-#corpus = read_conll(args.corpus)
-#corpus = sanitize_corpus(corpus, stopwords)
-#corpus = compute_vocabulary(corpus, vocab, vocab_limit=1000) #args.vocab_limit)
-#contexts = bag_of_words_contexts(corpus, span=2)
-#contexts = filter_by_tag(contexts, ['V'])
-#vectors = compute_context_vectors(contexts, lemma_nb=100, context_min=5)
-#similarity = cosine_similarity(vectors)
-#dump_thesaurus(sys.stdout, similarity)
-
 
 # vim: set filetype=python:
