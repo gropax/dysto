@@ -3,8 +3,8 @@ dysto data/estrep-694882.parsed_bonsai3_2_malt.conll \
       --stopwords data/stopwords_fr.txt \
       --tags "V:500,NC:1000" \
       --positional \
-      --span 7 \
-      --context-occurence 5 \
+      --span 4 \
+      --context-occurence 4 \
       --similarity cosine \
       --outdir output \
       --verbose
