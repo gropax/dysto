@@ -85,9 +85,9 @@ def compute_vocabulary(corpus, vocab={}, vocab_limit=float('inf')):
 def sentence_bag_of_words_contexts(sent, span=4):
     triples = []
     for i in range(0, len(sent)):
-        w = sent[i]
+        w, t, *_ = sent[i]
         neighbours = sent[max(0,i-span):i] + sent[i+1:min(i+span+1,len(sent))]
-        triples += [(w, n) for n in neighbours]
+        triples += [((w, t), (w2, t2)) for w2, t2, *_ in neighbours]
     return triples
 
 def bag_of_words_contexts(corpus, span=4, backup=None):
@@ -101,18 +101,18 @@ def bag_of_words_contexts(corpus, span=4, backup=None):
 def sentence_positional_contexts(sent, span=4):
     triples = []
     for i in range(0, len(sent)):
-        w = sent[i]
+        w1, t1, *_ = sent[i]
         before = [(sent[x], x-i) for x in range(max(0,i-span),i)]
         after = [(sent[x], x-i) for x in range(i+1,min(i+span+1,len(sent)))]
         contexts = before + after
-        triples += [(w, n) for n in contexts]
+        triples += [((w1, t1), ((w2, t2), p)) for (w2, t2, *_), p in contexts]
     return triples
 
 def positional_contexts(corpus, span=4, backup=None):
     for sent in corpus:
         for context in sentence_positional_contexts(sent, span):
-            if backup:
-                backup.write(dump_qualified_context(context))
+            #if backup:
+                #backup.write(dump_qualified_context(context))
 
             yield context
 
