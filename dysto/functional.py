@@ -9,7 +9,7 @@ def read_conll(stream):
         line = l.strip()
         if line:
             fx = line.split('\t')
-            word = fx[2], fx[4]
+            word = fx[2], fx[4], int(fx[6]), fx[7]
             sent.append(word)
         elif sent:
             yield sent
@@ -20,9 +20,12 @@ def read_stopwords(stream):
     """Parse a stopwords stream and return a set of words"""
     return set(stream.read().strip().split('\n'))
 
+def read_relations(stream):
+    return [tuple(s.strip().split('\t')) for s in stream]
+
 def sanitize_sentence(sent, words=[], tags=[]):
     """Remove all items in `sent` which word is in `words` or tag is in `tags`"""
-    return [(w, t) for w, t in sent if not (w in words or t in tags)]
+    return [(w, t, h, r) for w, t, h, r in sent if not (w in words or t in tags)]
 
 def sanitize_corpus(corpus, words=[], tags=[]):
     for s in corpus:
@@ -37,7 +40,7 @@ def limit_tokens(corpus, limit, logger=None):
     n = 0
     for s in corpus:
         nn = n
-        for w, t in s:
+        for w, t, *_ in s:
             nn += 1
 
         if logger and n > ptot:
@@ -60,7 +63,7 @@ def compute_vocabulary(corpus, vocab={}, vocab_limit=float('inf')):
     i = 0
     for s in corpus:
         new_vocab = []
-        for w, t in s:
+        for w, t, *_ in s:
             if not w in vocab:
                 i += 1
                 new_vocab.append([w, i])
@@ -101,7 +104,41 @@ def positional_contexts(corpus, span=4, backup=None):
     for sent in corpus:
         for context in sentence_positional_contexts(sent, span):
             if backup:
-                backup.write(dump_positional_context(context))
+                backup.write(dump_qualified_context(context))
+
+            yield context
+
+# Retourne la liste les contextes en dépendance de la phrase donnée,
+# dont la relation est décrite par le dictionnaire `rels`, au format suivant:
+#
+#     rels = [
+#         ('V', 'obj', 'NC'),
+#         # ('V', 'obj', 'P', 'obj', 'NC'),
+#     ]
+#
+def sentence_dependency_contexts(sent, rels):
+    triples = []
+    for w, t, h, r in sent:
+        if h > 0:
+            hw, ht, hh, hr = sent[h-1]
+            if hh > 0:
+                hhw, hht, *_ = sent[hh-1]
+                if (hht, hr, ht, r, t) in rels:
+                    triples.append(((hhw, hht), ((w, t), hw + '_obj')))
+                    triples.append(((w, t), ((hhw, hht), hw + '_obj_of')))
+                    continue
+
+            if (ht, r, t) in rels:
+                triples.append(((hw, ht), ((w, t), r)))
+                triples.append(((w, t), ((hw, ht), r + '_of')))
+
+    return triples
+
+def dependency_contexts(corpus, relations=[], backup=None):
+    for sent in corpus:
+        for context in sentence_dependency_contexts(sent, relations):
+            if backup:
+                backup.write(dump_qualified_context(context))
 
             yield context
 
@@ -166,7 +203,7 @@ def dump_bag_of_words_context(context):
     (w1, t1), (w2, t2) = context
     return "\t".join([w1, t1, w2, t2]) + "\n"
 
-def dump_positional_context(context):
+def dump_qualified_context(context):
     (w1, t1), ((w2, t2), p) = context
     return "\t".join([w1, t1, w2, t2, str(p)]) + "\n"
 
@@ -226,16 +263,4 @@ def tf(vectors):
     pass
 
 def idf(vectors):
-    pass
-
-
-
-
-def bag_of_word_contexts(sents):
-    pass
-
-def neighbours_contexts(sents):
-    pass
-
-def dependency_contexts(trees):
     pass

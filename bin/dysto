@@ -31,11 +31,13 @@ context_type.add_argument('-b', '--bag-of-words', action='store_true', default=F
                           help="Use bag of words context type")
 context_type.add_argument('-p', '--positional', action='store_true', default=False,
                           help="Use positional context type")
-context_type.add_argument('-d', '--dependence', action='store_true', default=False,
+context_type.add_argument('-d', '--dependency', action='store_true', default=False,
                           help="Use dependence relation context type")
 
 parser.add_argument('-s', '--span', type=int, default=3,
                     help="Size of the span for bag of words contexts.")
+parser.add_argument('-r', '--relations', type=FileType('r'),
+                    help="File that describe the dependency relation to use.")
 #parser.add_argument('-r', '--relations', type=FileType('r'),
                     #help="File containing syntactic relations to use in contexts")
 
@@ -87,6 +89,7 @@ logger.log("Session directory :  %s" % session_dir)
 
 
 logger.log("Using corpus :  %s" % args.corpus.name)
+
 corpus = Corpus.from_stream(args.corpus)
 
 
@@ -101,6 +104,11 @@ exclude_tags = []
 if args.exclude_tags:
     logger.log("Exclude tags in :  %s" % args.exclude_tags.name)
     exclude_tags = read_stopwords(args.exclude_tags)
+
+relations = []
+if args.relations:
+    logger.log("Use relations in :  %s" % args.relations.name)
+    relations = read_relations(args.relations)
 
 
 tags = {t: int(n) for t, n in [p.split(':') for p in args.tags.strip().split(',')]}
@@ -126,6 +134,9 @@ if args.bag_of_words:
     contexts = corpus.bag_of_words_contexts(span=args.span, backup=context_backup)
 elif args.positional:
     contexts = corpus.positional_contexts(span=args.span, backup=context_backup)
+elif args.dependency:
+    print("relations: %s" % relations)
+    contexts = corpus.dependency_contexts(relations=relations, backup=context_backup)
 else:
     sys.stderr.write('Only support bag of words contexts')
     exit(1)

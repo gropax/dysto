@@ -35,5 +35,9 @@ class Corpus(object):
         gen = positional_contexts(self, span, backup=backup)
         return Contexts(gen)
 
+    def dependency_contexts(self, relations=[], backup=None):
+        gen = dependency_contexts(self, relations=relations, backup=backup)
+        return Contexts(gen)
+
     def vocabulary(self):
         return self._vocabulary
