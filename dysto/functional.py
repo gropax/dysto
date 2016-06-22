@@ -3,7 +3,7 @@ from collections import defaultdict
 
 
 def read_conll(stream):
-    """Parse a .conll file into a list of sentences"""
+    """Parser un fichier .conll et yield les phrases une par une"""
     sent = []
     for i, l in enumerate(stream):
         line = l.strip()
@@ -17,14 +17,16 @@ def read_conll(stream):
     if sent: yield sent
 
 def read_stopwords(stream):
-    """Parse a stopwords stream and return a set of words"""
+    """Parse une liste de mots et en retourne la liste"""
     return set(stream.read().strip().split('\n'))
 
 def read_relations(stream):
+    """Parse un fichier contenant les relation syntaxiques en dépendance à
+    considérer pour construire les contextes syntaxiques."""
     return [tuple(s.strip().split('\t')) for s in stream]
 
 def read_thesaurus(stream):
-    """Parse a serialized thesaurus file"""
+    """Parse un thésaurus sérializé et retourne un objet `Thesaurus`"""
     sim = {}
     for l in stream:
         w1, w2, s = l.strip().split('\t')
@@ -32,15 +34,18 @@ def read_thesaurus(stream):
     return sim
 
 def sanitize_sentence(sent, words=[], tags=[]):
-    """Remove all items in `sent` which word is in `words` or tag is in `tags`"""
+    """Retire les éléments de la phrase dont le lemme ou le tag fait parties des
+    listes d'exclusion données"""
     return [(w, t, h, r) for w, t, h, r in sent if not (w in words or t in tags)]
 
 def sanitize_corpus(corpus, words=[], tags=[]):
+    """Nettoye les phrases d'un corpus une à une"""
     for s in corpus:
         yield sanitize_sentence(s, words, tags)
 
 def limit_tokens(corpus, limit, logger=None):
-    """Reduce the size of the corpus under a given number tokens."""
+    """Cesse le parsing et le process des phrases une fois le nombre de tokens
+    désiré est atteint"""
     if logger:
         psize = int(limit / 20)
         ptot = psize
@@ -66,8 +71,8 @@ def limit_tokens(corpus, limit, logger=None):
 
 
 def compute_vocabulary(corpus, vocab={}, vocab_limit=float('inf')):
-    """Takes a corpus of sentences and reduce it to smaller corpus whose
-    vocabulary size does not exceed the given vocabulary limit."""
+    """Cesse le parsing et le process des phrases une fois que le vocabulaire a
+    atteint la taille souhaitée"""
     i = 0
     for s in corpus:
         new_vocab = []
@@ -83,6 +88,8 @@ def compute_vocabulary(corpus, vocab={}, vocab_limit=float('inf')):
             yield s
 
 def sentence_bag_of_words_contexts(sent, span=4):
+    """Retourne la liste des contextes de type bag of words présents dans la
+    phrase donnée"""
     triples = []
     for i in range(0, len(sent)):
         w, t, *_ = sent[i]
@@ -91,6 +98,7 @@ def sentence_bag_of_words_contexts(sent, span=4):
     return triples
 
 def bag_of_words_contexts(corpus, span=4, backup=None):
+    """Génère les contextes de types bag of word du corpus un par un"""
     for sent in corpus:
         for context in sentence_bag_of_words_contexts(sent, span):
             if backup:
@@ -99,6 +107,8 @@ def bag_of_words_contexts(corpus, span=4, backup=None):
             yield context
 
 def sentence_positional_contexts(sent, span=4):
+    """Retourne la liste des contextes de type linéaire présents dans la
+    phrase donnée"""
     triples = []
     for i in range(0, len(sent)):
         w1, t1, *_ = sent[i]
@@ -109,6 +119,7 @@ def sentence_positional_contexts(sent, span=4):
     return triples
 
 def positional_contexts(corpus, span=4, backup=None):
+    """Génère les contextes de types linéaire du corpus un par un"""
     for sent in corpus:
         for context in sentence_positional_contexts(sent, span):
             #if backup:
@@ -121,10 +132,12 @@ def positional_contexts(corpus, span=4, backup=None):
 #
 #     rels = [
 #         ('V', 'obj', 'NC'),
-#         # ('V', 'obj', 'P', 'obj', 'NC'),
+#         ('V', 'obj', 'P', 'obj', 'NC'),
 #     ]
 #
 def sentence_dependency_contexts(sent, rels=[]):
+    """Retourne la liste des contextes en dépendance présents dans la phrase
+    donnée"""
     triples = []
     for w, t, h, r in sent:
         if h > 0:
@@ -148,18 +161,13 @@ def sentence_dependency_contexts(sent, rels=[]):
     return triples
 
 def dependency_contexts(corpus, relations=[], backup=None):
+    """Génère les contextes en dépendance du corpus un par un"""
     for sent in corpus:
         for context in sentence_dependency_contexts(sent, relations):
             if backup:
                 backup.write(dump_qualified_context(context))
 
             yield context
-
-def filter_by_tag(contexts, allowed):
-    for c in contexts:
-        if c[0][1] in allowed:
-            yield c
-
 
 
 def compute_context_vectors(contexts, tags={}, context_min=1, logger=None):
@@ -211,11 +219,6 @@ def compute_context_vectors(contexts, tags={}, context_min=1, logger=None):
 
     return out
 
-
-def ppmi(vectors):
-    pass
-
-
 def dump_bag_of_words_context(context):
     (w1, t1), (w2, t2) = context
     return "\t".join([w1, t1, w2, t2]) + "\n"
@@ -223,62 +226,3 @@ def dump_bag_of_words_context(context):
 def dump_qualified_context(context):
     (w1, t1), ((w2, t2), p) = context
     return "\t".join([w1, t1, w2, t2, str(p)]) + "\n"
-
-
-#def cosine_similarity(vectors):
-    #simil = {}
-    #words = list(vectors.keys())
-    #for i in range(1, len(words)):
-        #for j in range(0, i):
-            #w1, w2 = words[i], words[j]
-            #v1, v2 = vectors[w1], vectors[w2]
-            #simil[(w1, w2)] = cosine(v1, v2)
-    #return simil
-
-#def cosine(v1, v2):
-    #return scalar_product(v1, v2) / norm(v1) / norm(v2)
-
-#def norm(v):
-    #return sum(x**2 for x in v.values()) ** 0.5
-
-#def scalar_product(v1, v2):
-    #return sum(v1[k] * v2[k] for k in v1 if k in v2)
-
-#def dump_thesaurus(stream, simil):
-    #simil = sorted(simil.items(), key=lambda t: t[1], reverse=True)
-    #for pair, score in simil:
-        #if score > 0:
-            #stream.write("\t".join("_".join(s for s in i) for i in pair) + "\t%f\n" % score)
-
-#def lemmatize_contexts(contexts, lemmatizer, tagmap={}):
-    #for (w, t), (w2, t2) in contexts:
-        #l = lemmatizer.lemmatize(w, tagmap.get(t, t))
-        #if l:
-            #l2 = lemmatizer.lemmatize(w2, tagmap.get(t2, t2))
-            #if l2:
-                #yield ((l, t), (l2, t2))
-
-#def lemmatize_corpus(corpus, lemmatizer):
-    #for s in corpus:
-        #news = lemmatize_sentence(s, lemmatizer)
-        #if news:
-            #yield news
-
-#def lemmatize_sentence(sentence, lemmatizer):
-    #news = []
-    #for w, t in sentence:
-        #l = lemmatizer.lemmatize(w, t)
-        #if l:
-            #news.append((l, t))
-        #else:
-            #return None
-    #return news
-
-def tf_idf(vectors):
-    pass
-
-def tf(vectors):
-    pass
-
-def idf(vectors):
-    pass

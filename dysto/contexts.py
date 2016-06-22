@@ -14,5 +14,7 @@ class Contexts(object):
         return Contexts(gen)
 
     def context_vectors(self, tags, context_min=5, logger=None):
+        """Génère les représentations vectorielles des mots à partir de la liste
+        des contextes"""
         mt_vectors = compute_context_vectors(self._generator, tags, context_min, logger=logger)
         return MultitagVectors(mt_vectors)

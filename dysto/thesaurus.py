@@ -29,6 +29,8 @@ class Thesaurus(object):
                 stream.write("\t".join(i for i in pair) + "\t%f\n" % score)
 
     def score(self, w1, w2):
+        """Retourne le score de similarité des deux mots données. Retourne 0 si
+        l'un des mots n'est pas présent dans le thésaurus"""
         if (w1, w2) in self._similarity:
             return self._similarity[(w1, w2)]
         elif (w2, w1) in self._similarity:

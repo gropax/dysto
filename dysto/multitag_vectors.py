@@ -5,13 +5,19 @@ import os
 
 
 class MultitagVectors(object):
+    """Classe qui contient plusieurs ensembles de vecteurs de mots, classé par
+    tag. Chaque ensemble de vecteur est déstiné à produire un thésaurus."""
+
     def __init__(self, mt_vectors):
         self.vectors = mt_vectors
 
     def ppmi(self):
+        """Génère un nouvel ensemble de vecteurs pondérés par PPMI"""
         return MultitagVectors({t: Vectors(vx).ppmi() for t, vx in self.vectors.items()})
 
     def distributional_thesauri(self, sim='cosine', logger=None):
+        """Génère un thésaurus distributionel pour chaque tag"""
+
         out = {}
         for t, vx in self.vectors.items():
             logger and logger.log("Computing thesaurus for %s..." % t)

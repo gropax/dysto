@@ -1,11 +1,21 @@
-Pour télécharger et installer le package en mode développement:
+Télécharger le packet depuis le répertoire git:
 ```bash
 git clone git@github.com:gropax/dysto.git
+```
+
+installer le packet en mode developpement
+```bash
 cd dysto
 sudo python3 setup.py develop
 ```
 
-Pour executer le code d'exemple, il faut ajouter le corpus donné par la prof (`estrep-694882.parsed_bonsai3_2_malt.conll`) dans le dossier `data`:
+Pour executer les scripts d'exemple, il faut d'abord ajouter le corpus (`estrep-694882.parsed_bonsai3_2_malt.conll`) dans le dossier `data`:
 ```bash
-bash example_usage.bash
+bash bag_of_word.bash
+```
+
+Pour évaluer la précision d'un thésaurus sur une série de tests:
+```bash
+dysto-test /path/to/thesaurus_NC /data/tests_N
+dysto-test /path/to/thesaurus_V /data/tests_V
 ```
