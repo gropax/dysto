@@ -1,5 +1,6 @@
 from dysto.functional import *
 from dysto.thesaurus import Thesaurus
+import math
 
 
 class Vectors(object):
@@ -7,6 +8,31 @@ class Vectors(object):
         self.vectors = vectors
         self.words = list(vectors.keys())
         self._norms = {}
+
+    def ppmi(self):
+        wp, cp, t = {}, {}, 0
+        for w, cx in self.vectors.items():
+            if not w in wp:
+                wp[w] = 0
+            for c, s in cx.items():
+                if not c in cp:
+                    cp[c] = 0
+                wp[w] += s
+                cp[c] += s
+                t += s
+
+        wp = {w: s / t for w, s in wp.items()}
+        cp = {c: s / t for c, s in cp.items()}
+
+        newvx = {}
+        for w, cx in self.vectors.items():
+            v = {}
+            for c, s in cx.items():
+                v[c] = max(math.log(s / (wp[w] * cp[c])), 0)
+            newvx[w] = v
+
+        return Vectors(newvx)
+
 
     def distributional_thesaurus(self, sim='cosine'):
         simil, score = {}, self.score_proc(sim)

@@ -212,6 +212,10 @@ def compute_context_vectors(contexts, tags={}, context_min=1, logger=None):
     return out
 
 
+def ppmi(vectors):
+    pass
+
+
 def dump_bag_of_words_context(context):
     (w1, t1), (w2, t2) = context
     return "\t".join([w1, t1, w2, t2]) + "\n"
@@ -219,6 +223,7 @@ def dump_bag_of_words_context(context):
 def dump_qualified_context(context):
     (w1, t1), ((w2, t2), p) = context
     return "\t".join([w1, t1, w2, t2, str(p)]) + "\n"
+
 
 #def cosine_similarity(vectors):
     #simil = {}

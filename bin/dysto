@@ -142,7 +142,8 @@ else:
     sys.stderr.write('Only support bag of words contexts')
     exit(1)
 
-vectors = contexts.context_vectors(tags, context_min=args.context_occurence, logger=logger)
+vectors = contexts.context_vectors(tags, context_min=args.context_occurence, logger=logger) \
+                  .ppmi()
 
 thesauri = vectors.distributional_thesauri(sim=args.similarity, logger=logger)
 
