@@ -1,0 +1,42 @@
+import os
+import time
+from argparse import ArgumentParser, FileType
+from itertools import combinations
+from dysto import *
+
+
+parser = ArgumentParser(description="Generate distributional thesauri")
+parser.add_argument('thesaurus', type=FileType('r'),
+                    help="Serialized thesaurus")
+parser.add_argument('test', type=FileType('r'),
+                    help="List of synonyms questions")
+
+args = parser.parse_args()
+
+thesaurus = Thesaurus.from_stream(args.thesaurus)
+
+not_found = []
+success = 0
+tot = 0
+
+for l in args.test:
+    ref, *opts = l.strip().split('\t')
+    best, ans = 0, None
+    score = 0
+    for opt in opts:
+        score = thesaurus.score(ref, opt)
+        if score > best:
+            best = score
+            ans = opt
+    if score > 0:
+        if ans == opts[-1]:
+            success += 1
+        tot += 1
+    else:
+        not_found.append(opts[-1])
+
+print("Valid Questions : %i" % tot)
+print("Accuracy : %0.2f" % (100 * success / tot))
+print("Not Found : %s" % not_found)
+
+# vim: set filetype=python:

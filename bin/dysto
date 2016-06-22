@@ -40,6 +40,8 @@ parser.add_argument('-r', '--relations', type=FileType('r'),
                     help="File that describe the dependency relation to use.")
 #parser.add_argument('-r', '--relations', type=FileType('r'),
                     #help="File containing syntactic relations to use in contexts")
+parser.add_argument('-z', '--test', type=FileType('r'),
+                          help="File containing internal tests")
 
 parser.add_argument('-o', '--outdir', default='./dysto_output',
                     help="Output directory. Default: ./dysto_output")
@@ -148,7 +150,6 @@ thesauri = vectors.distributional_thesauri(sim=args.similarity, logger=logger)
 for tag, thesaurus in thesauri.items():
     filename = os.path.join(session_dir, "thesaurus_%s" % tag)
     thesaurus.dump(open(filename, 'w'))
-
 
 exit(0)
 

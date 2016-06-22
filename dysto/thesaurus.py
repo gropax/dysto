@@ -2,6 +2,10 @@ from dysto.functional import *
 
 
 class Thesaurus(object):
+    @classmethod
+    def from_stream(self, stream):
+        return self(read_thesaurus(stream))
+
     def __init__(self, sim):
         self._similarity = sim
         self._words = self.compute_words(sim)
@@ -23,3 +27,11 @@ class Thesaurus(object):
         for pair, score in simil:
             if score > 0:
                 stream.write("\t".join(i for i in pair) + "\t%f\n" % score)
+
+    def score(self, w1, w2):
+        if (w1, w2) in self._similarity:
+            return self._similarity[(w1, w2)]
+        elif (w2, w1) in self._similarity:
+            return self._similarity[(w2, w1)]
+        else:
+            return 0

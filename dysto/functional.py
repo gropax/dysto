@@ -23,6 +23,14 @@ def read_stopwords(stream):
 def read_relations(stream):
     return [tuple(s.strip().split('\t')) for s in stream]
 
+def read_thesaurus(stream):
+    """Parse a serialized thesaurus file"""
+    sim = {}
+    for l in stream:
+        w1, w2, s = l.strip().split('\t')
+        sim[(w1, w2)] = float(s)
+    return sim
+
 def sanitize_sentence(sent, words=[], tags=[]):
     """Remove all items in `sent` which word is in `words` or tag is in `tags`"""
     return [(w, t, h, r) for w, t, h, r in sent if not (w in words or t in tags)]
@@ -116,19 +124,24 @@ def positional_contexts(corpus, span=4, backup=None):
 #         # ('V', 'obj', 'P', 'obj', 'NC'),
 #     ]
 #
-def sentence_dependency_contexts(sent, rels):
+def sentence_dependency_contexts(sent, rels=[]):
     triples = []
     for w, t, h, r in sent:
         if h > 0:
             hw, ht, hh, hr = sent[h-1]
-            if hh > 0:
-                hhw, hht, *_ = sent[hh-1]
-                if (hht, hr, ht, r, t) in rels:
-                    triples.append(((hhw, hht), ((w, t), hw + '_obj')))
-                    triples.append(((w, t), ((hhw, hht), hw + '_obj_of')))
-                    continue
 
-            if (ht, r, t) in rels:
+            if rels:
+                if hh > 0:
+                    hhw, hht, *_ = sent[hh-1]
+                    if (hht, hr, ht, r, t) in rels:
+                        triples.append(((hhw, hht), ((w, t), hw + '_obj')))
+                        triples.append(((w, t), ((hhw, hht), hw + '_obj_of')))
+                        continue
+
+                if (ht, r, t) in rels:
+                    triples.append(((hw, ht), ((w, t), r)))
+                    triples.append(((w, t), ((hw, ht), r + '_of')))
+            else:
                 triples.append(((hw, ht), ((w, t), r)))
                 triples.append(((w, t), ((hw, ht), r + '_of')))
 

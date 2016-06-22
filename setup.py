@@ -8,5 +8,5 @@ setup(name='dysto',
       author_email='maximedelaudrin@gmail.com',
       license='MIT',
       packages=['dysto'],
-      scripts=['bin/dysto'],
+      scripts=['bin/dysto', 'bin/dysto-test'],
       zip_safe=False)
