@@ -13,9 +13,13 @@ class MultitagVectors(object):
         for t, vx in self.vectors.items():
             logger and logger.log("Computing thesaurus for %s..." % t)
             start = time.clock()
-            out[t] = Vectors(vx).distributional_thesaurus(sim)
+
+            thes = Vectors(vx).distributional_thesaurus(sim)
+
             end = time.clock()
-            logger and logger.log("\tElapsed time :  %0.3f s" % (end - start))
+            logger and logger.log("\tElapsed time :  %0.3f s\n\tItem number :  %i" % (end - start, thes.size()))
+
+            out[t] = thes
         return out
 
     def dump(self, dir):

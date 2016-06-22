@@ -4,12 +4,15 @@ from argparse import ArgumentParser, FileType
 from itertools import combinations
 from dysto import *
 
+
 parser = ArgumentParser(description="Generate distributional thesauri")
 parser.add_argument('corpus', type=FileType('r'),
                     help="Corpus in conll format")
 
 parser.add_argument('-W', '--stopwords', type=FileType('r'),
                     help="File containing a list of stopwords")
+parser.add_argument('-x', '--exclude-tags', type=FileType('r'),
+                    help="File containing a list of tags that will not be considered as context")
 parser.add_argument('-t', '--tags', type=str, required=True,
                     help="Comma separated list of tags along with the number of " \
                     "lemma that will be used in each thesaurus (one per tag). " \
@@ -41,6 +44,8 @@ parser.add_argument('-o', '--outdir', default='./dysto_output',
 parser.add_argument('-S', '--similarity', type=str, default='cosine',
                     choices=['cosine'],
                     help="Similarity scoring method. Default: cosine")
+parser.add_argument('-B', '--backup', action='store_true', default=False,
+                    help="Backup contexts in a file after parsing")
 parser.add_argument('-V', '--verbose', action='store_true', default=False,
                     help="Print information about current process")
 
@@ -77,6 +82,7 @@ context_backup = open(os.path.join(session_dir, 'contexts'), 'w')
 #vectors_backup = open(os.path.join(session_dir, 'vectors'), 'w')
 
 
+logger.log("Command :\n\tdysto %s" % " ".join(sys.argv))
 logger.log("Session directory :  %s" % session_dir)
 
 
@@ -90,6 +96,12 @@ stopwords = []
 if args.stopwords:
     logger.log("Using stopwords in :  %s" % args.stopwords.name)
     stopwords = read_stopwords(args.stopwords)
+
+exclude_tags = []
+if args.exclude_tags:
+    logger.log("Exclude tags in :  %s" % args.exclude_tags.name)
+    exclude_tags = read_stopwords(args.exclude_tags)
+
 
 tags = {t: int(n) for t, n in [p.split(':') for p in args.tags.strip().split(',')]}
 
@@ -105,7 +117,7 @@ if args.token_limit:
     corpus = corpus.limit_tokens(args.token_limit, logger=logger)
 
 if stopwords:
-    corpus = corpus.sanitize(stopwords)
+    corpus = corpus.sanitize(stopwords, exclude_tags)
 
 if args.vocab_limit:
     corpus = corpus.limit_vocabulary(args.vocab_limit)

@@ -23,6 +23,14 @@ class Vectors(object):
     def cosine(self, w1, w2):
         return self.scalar_product(w1, w2) / self.norm(w1) / self.norm(w2)
 
+    #def cosine(self, w1, w2):
+        #p = self.scalar_product(w1, w2) / self.norm(w1) / self.norm(w2)
+        #if p == 1:
+            #print("v1 : %s | %s" % (w1, self.vectors[w1]))
+            #print("v2 : %s | %s" % (w2, self.vectors[w2]))
+            #raise
+        #return p
+
     def norm(self, w):
         if not w in self._norms:
             self._norms[w] = sum(x**2 for x in self.vectors[w].values()) ** 0.5
@@ -32,13 +40,8 @@ class Vectors(object):
         v1, v2 = self.vectors[w1], self.vectors[w2]
         return sum(v1[k] * v2[k] for k in v1 if k in v2)
 
-    def dump(self, stream):
-        for w, v in self.vectors.items():
-            #vstr = ""
-            #for (w2, t), s in v.items():
-            print(w)
-            print(list(v.items())[0])
-            a = [x for w, s in v.items() for x in ["_".join(w), s]]
-            print(a)
-            s = w + "\t" + "\t".join([x for y in v.items() for x in y])
-            stream.write(s)
+    #def dump(self, stream):
+        #for w, v in self.vectors.items():
+            #a = [x for w, s in v.items() for x in ["_".join(w), s]]
+            #s = w + "\t" + "\t".join([x for y in v.items() for x in y])
+            #stream.write(s)

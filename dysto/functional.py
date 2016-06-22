@@ -79,7 +79,7 @@ def sentence_bag_of_words_contexts(sent, span=4):
         triples += [(w, n) for n in neighbours]
     return triples
 
-def bag_of_words_contexts(corpus, span=4):
+def bag_of_words_contexts(corpus, span=4, backup=None):
     for sent in corpus:
         for context in sentence_bag_of_words_contexts(sent, span):
             if backup:
